@@ -1,1 +1,3 @@
-# QuizGame1.0 Simple juego de preguntas.
+# QuizGame1.1 
+
+Simple juego de preguntas.
