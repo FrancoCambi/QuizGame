@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:QuizGame"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <SolidColorBrush x:Key="BackgroundColor" Color="Beige"/>
+        <SolidColorBrush x:Key="BackgroundColor" Color="beige"/>
         <SolidColorBrush x:Key="ButtonColor" Color="BlueViolet"/>
         <SolidColorBrush x:Key="LineColor" Color="#01fd0a"/>
         

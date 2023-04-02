@@ -60,11 +60,18 @@ namespace QuizGame
                                                                                     "< 1 segundo",
                                                                                     "7 minutos"}
             },
-            { "Europa es satélite natural de qué planeta?",  new List<string> {
+            { "Europa es satélite natural de que planeta?",  new List<string> {
                                                             "Saturno",
                                                             "Marte",
                                                             "Júpiter",
                                                             "Venus"}
+            },
+
+            { "Cuántos grados centígrados se conoce como el 'cero absoluto'?",  new List<string> {
+                                                            "-1000°C",
+                                                            "-273.15°C",
+                                                            "-587.254°C",
+                                                            "-899.300°C"}
             },
         };
 
@@ -76,7 +83,8 @@ namespace QuizGame
             "Sagitario A",
             "300.000 km/s",
             "7 minutos",
-            "Júpiter"
+            "Júpiter",
+            "-273.15°C"
         };
 
         private readonly int totalQuestions = questions.Count;
@@ -155,7 +163,7 @@ namespace QuizGame
         /// Hide un botón de respuestas by index arrancando en 0
         /// </summary>
         /// <param name="index"></param>
-        private void HideButtonByIndex(int index)
+        private void HideAnswerByIndex(int index)
         {
             switch (index)
             {
@@ -180,7 +188,7 @@ namespace QuizGame
         /// Vuelve a mostrar algún botón de respuestas by index arrancando en 0
         /// </summary>
         /// <param name="index"></param>
-        private void UnHideButtonByIndex(int index)
+        private void UnHideAnswerByIndex(int index)
         {
             switch (index)
             {
@@ -201,7 +209,29 @@ namespace QuizGame
             }
         }
 
-        
+        private void UnHideAllAnswers()
+        {
+            UnHideAnswerByIndex(0);
+            UnHideAnswerByIndex(1);
+            UnHideAnswerByIndex(2);
+            UnHideAnswerByIndex(3);
+        }
+
+        private void DisableAnswers()
+        {
+            AnswerA.IsEnabled = false;
+            AnswerB.IsEnabled = false;
+            AnswerC.IsEnabled = false;
+            AnswerD.IsEnabled = false;
+        }
+
+        private void EnableAnswers()
+        {
+            AnswerA.IsEnabled = true;
+            AnswerB.IsEnabled = true;
+            AnswerC.IsEnabled = true;
+            AnswerD.IsEnabled = true;
+        }
 
         /// <summary>
         /// Se llama automáticamente al presionar el botón de la respuesta A
@@ -276,8 +306,8 @@ namespace QuizGame
 
             } while (options[randomIndex1] == answer || options[randomIndex2] == answer || randomIndex1 == randomIndex2);
 
-            HideButtonByIndex(randomIndex1);
-            HideButtonByIndex(randomIndex2);
+            HideAnswerByIndex(randomIndex1);
+            HideAnswerByIndex(randomIndex2);
 
             TwoChanceCom.IsEnabled = false;
             TwoChanceCom.Opacity = 0.5;
@@ -289,6 +319,10 @@ namespace QuizGame
         /// <param name="answer"></param>
         private async void QuestionAnswered(Button answer)
         {
+
+            // Se deshabilitan los botones para evitar bug de poder responder muchas veces
+            DisableAnswers();
+
             string correctAnswer = answers[gameState.QuestionNum - 1];
 
             if ((string)answer.Content == correctAnswer)
@@ -336,10 +370,10 @@ namespace QuizGame
             }
 
             // Mostrar de nuevo los que desaparecieron por el uso del comodín
-            UnHideButtonByIndex(0);
-            UnHideButtonByIndex(1);
-            UnHideButtonByIndex(2);
-            UnHideButtonByIndex(3);
+            UnHideAllAnswers();
+
+            // Habilitar todos los botones una vez pasa de pregunta
+            EnableAnswers();
 
 
         }
