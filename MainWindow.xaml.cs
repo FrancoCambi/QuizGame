@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Annotations;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -59,11 +60,18 @@ namespace QuizGame
                                                                                     "< 1 segundo",
                                                                                     "7 minutos"}
             },
-            { "Europa es satélite natural de qué planeta?",  new List<string> {
+            { "Europa es satélite natural de que planeta?",  new List<string> {
                                                             "Saturno",
                                                             "Marte",
                                                             "Júpiter",
                                                             "Venus"}
+            },
+
+            { "Cuántos grados centígrados se conoce como el 'cero absoluto'?",  new List<string> {
+                                                            "-1000°C",
+                                                            "-273.15°C",
+                                                            "-587.254°C",
+                                                            "-899.300°C"}
             },
         };
 
@@ -75,7 +83,8 @@ namespace QuizGame
             "Sagitario A",
             "300.000 km/s",
             "7 minutos",
-            "Júpiter"
+            "Júpiter",
+            "-273.15°C"
         };
 
         private readonly int totalQuestions = questions.Count;
@@ -108,6 +117,120 @@ namespace QuizGame
             QuestionNumber.Text = $"Pregunta {gameState.QuestionNum}/{totalQuestions}";
 
             Vidas.Text = $"Vidas: {gameState.Lives}/{gameState.TotalLives}";
+        }
+
+        /// <summary>
+        /// Dado un index, devuelve el botón de respuestas correspondientes arrancando en 0
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        private Button GetAnswerFromIndex(int index)
+        {
+            Button resultado;
+
+            switch (index)
+            {
+                case 0:
+                    resultado =  AnswerA;
+                    break;
+                case 1:
+                    resultado = AnswerB;
+                    break;
+                case 2:
+                    resultado = AnswerC;
+                    break;
+                case 3:
+                    resultado = AnswerD;
+                    break;
+                default:
+                    resultado = new();
+                    break;
+
+            }
+
+            return resultado;
+        }
+
+        private void ResetButtonsBackground()
+        {
+            AnswerA.ClearValue(Button.BackgroundProperty);
+            AnswerB.ClearValue(Button.BackgroundProperty);
+            AnswerC.ClearValue(Button.BackgroundProperty);
+            AnswerD.ClearValue(Button.BackgroundProperty);
+        }
+
+        /// <summary>
+        /// Hide un botón de respuestas by index arrancando en 0
+        /// </summary>
+        /// <param name="index"></param>
+        private void HideAnswerByIndex(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    AnswerA.Visibility = Visibility.Hidden;
+                    break;
+                case 1:
+                    AnswerB.Visibility = Visibility.Hidden;
+                    break;
+                case 2:
+                    AnswerC.Visibility = Visibility.Hidden;
+                    break;
+                case 3:
+                    AnswerD.Visibility = Visibility.Hidden;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Vuelve a mostrar algún botón de respuestas by index arrancando en 0
+        /// </summary>
+        /// <param name="index"></param>
+        private void UnHideAnswerByIndex(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    AnswerA.Visibility = Visibility.Visible;
+                    break;
+                case 1:
+                    AnswerB.Visibility = Visibility.Visible;
+                    break;
+                case 2:
+                    AnswerC.Visibility = Visibility.Visible;
+                    break;
+                case 3:
+                    AnswerD.Visibility = Visibility.Visible;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void UnHideAllAnswers()
+        {
+            UnHideAnswerByIndex(0);
+            UnHideAnswerByIndex(1);
+            UnHideAnswerByIndex(2);
+            UnHideAnswerByIndex(3);
+        }
+
+        private void DisableAnswers()
+        {
+            AnswerA.IsEnabled = false;
+            AnswerB.IsEnabled = false;
+            AnswerC.IsEnabled = false;
+            AnswerD.IsEnabled = false;
+        }
+
+        private void EnableAnswers()
+        {
+            AnswerA.IsEnabled = true;
+            AnswerB.IsEnabled = true;
+            AnswerC.IsEnabled = true;
+            AnswerD.IsEnabled = true;
         }
 
         /// <summary>
@@ -163,19 +286,60 @@ namespace QuizGame
         }
 
         /// <summary>
+        /// Se llama automáticamente al presionar el botón del comodín
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TwoChanceCom_Click(object sender, RoutedEventArgs e)
+        {
+            Random random = new Random();
+            string answer = answers[gameState.QuestionNum - 1];
+            List<string> options = questions.ElementAt(gameState.QuestionNum - 1).Value;
+
+            int randomIndex1;
+            int randomIndex2;
+
+            do
+            {
+                randomIndex1 = random.Next(4);
+                randomIndex2 = random.Next(4);
+
+            } while (options[randomIndex1] == answer || options[randomIndex2] == answer || randomIndex1 == randomIndex2);
+
+            HideAnswerByIndex(randomIndex1);
+            HideAnswerByIndex(randomIndex2);
+
+            TwoChanceCom.IsEnabled = false;
+            TwoChanceCom.Opacity = 0.5;
+        }
+
+        /// <summary>
         /// Se llama luego de contestar una pregunta y maneja lo que pasa luego
         /// </summary>
         /// <param name="answer"></param>
-        private void QuestionAnswered(Button answer)
+        private async void QuestionAnswered(Button answer)
         {
+
+            // Se deshabilitan los botones para evitar bug de poder responder muchas veces
+            DisableAnswers();
+
             string correctAnswer = answers[gameState.QuestionNum - 1];
 
             if ((string)answer.Content == correctAnswer)
             {
+
+                answer.Background = Brushes.Green;
                 gameState.CorrectAnswers++;
             }
             else
             {
+                List<string> options = questions.ElementAt(gameState.QuestionNum - 1).Value;
+                int correctAnswerIndex = options.IndexOf(correctAnswer);
+                Button correctAnswerButton = GetAnswerFromIndex(correctAnswerIndex);
+                correctAnswerButton.Background = Brushes.Green;
+
+                answer.Background = Brushes.Red;
+
                 gameState.Lives--;
             }
 
@@ -184,22 +348,32 @@ namespace QuizGame
 
             if (gameState.QuestionNum > totalQuestions || gameState.Lives <= 0)
             {
+                await Task.Delay(750);
                 GameEnded();
             }
             else
             {
-
+                await Task.Delay(750);
+                ResetButtonsBackground();
                 QuestionNumber.Text = $"Pregunta {gameState.QuestionNum}/{totalQuestions}";
 
                 Vidas.Text = $"Vidas: {gameState.Lives}/3";
 
                 Question.Text = questions.ElementAt(gameState.QuestionNum - 1).Key;
 
-                AnswerA.Content = questions.ElementAt(gameState.QuestionNum - 1).Value[0];
-                AnswerB.Content = questions.ElementAt(gameState.QuestionNum - 1).Value[1];
-                AnswerC.Content = questions.ElementAt(gameState.QuestionNum - 1).Value[2];
-                AnswerD.Content = questions.ElementAt(gameState.QuestionNum - 1).Value[3];
+                List<string> options = questions.ElementAt(gameState.QuestionNum - 1).Value;
+
+                AnswerA.Content = options[0];
+                AnswerB.Content = options[1];
+                AnswerC.Content = options[2];
+                AnswerD.Content = options[3];
             }
+
+            // Mostrar de nuevo los que desaparecieron por el uso del comodín
+            UnHideAllAnswers();
+
+            // Habilitar todos los botones una vez pasa de pregunta
+            EnableAnswers();
 
 
         }
